@@ -20,10 +20,11 @@ UI screenshots are real emulator captures. They show **Editor mode**, since the 
 
 ## Physical release gate
 
-The following checks **are not yet verified on physical hardware**. Perform them on each supported model and record Nothing OS build numbers before describing a public binary as hardware-verified.
+On 2026-10-18, the Phone (3) user confirmed “Logo appears” after installing build 3 and tapping Apply. The user reports Android 17; the exact Nothing OS build, SDK route and lock/orientation state were not captured. This confirms visible output for that test. The remaining checks below are pending and must be performed separately on each supported model.
 
 | Check | Phone (3) | Phone (4a) Pro |
 | --- | --- | --- |
+| Logo appears after Apply | User-confirmed — build 3 | Pending |
 | SDK registration / firmware entitlement | Pending | Pending |
 | Correct LED mapping and brightness | Pending | Pending |
 | Toy discovery and Always-On selection | Pending | Pending |
@@ -60,4 +61,4 @@ The first card in Settings and display setup opens the firmware’s `AodToySelec
 - SDK frame rendering now finishes before its input bitmap is recycled; app and Toy routes receive the rendered LED array.
 - A failed route is held until an explicit retry, fresh connection, route change or OS AOD event, rather than resubmitted on every animation tick. Clearing the display remains available.
 - The editor exposes the failed operation and exception, with retry and Copy error details. Diagnostics include Android/OS build and SDK route state, without automatic upload.
-- The reported immediate failure on Phone (3) / Android 17 and the user’s earlier working version still require comparison on physical hardware. Emulator checks do not establish that this exact failure is resolved.
+- The affected Phone (3) user confirmed that the logo appears after Apply with build 3 on 2026-10-18. The original exception was not captured, so its exact cause remains unconfirmed. This result does not establish persistent output across lock/unlock or complete the other hardware checks above.

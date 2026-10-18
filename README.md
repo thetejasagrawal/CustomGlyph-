@@ -31,7 +31,7 @@ Custom Glyph is a native Kotlin / Jetpack Compose app. Import artwork, position 
 
 The masks and LED spacing come from Nothing's official SVG specifications. The same processed pixel maps feed the preview, export and SDK adapter. Display appearance on a screen cannot calibrate the physical LEDs' brightness.
 
-**Physical-device verification is still required for both models.** The editor and platform flows have been tested on an Android 15 emulator; a passing SDK request does not prove that an LED illuminated. See [the verification record](docs/VERIFICATION.md).
+**Logo output after Apply is user-confirmed on Phone (3) with build 3.** The user reports Android 17; the exact Nothing OS build and SDK route were not captured. Persistent display behavior and the remaining hardware checks are pending, and Phone (4a) Pro has not been physically tested. The editor and platform flows have also been tested on an Android 15 emulator. See [the verification record](docs/VERIFICATION.md).
 
 ## Install
 
@@ -57,7 +57,7 @@ Nothing OS can still interrupt output for other toys, notifications, battery pol
 
 The editor shows the failed operation and SDK error. Tap **Copy error details** in the error dialog (also available in Settings) when reporting it. The report includes the app build, Android/OS build, device profile, SDK matrix size, connection/route state and exception. It is copied locally; the app does not upload it.
 
-Build 3 completes SDK rendering before releasing the source bitmap and submits the resulting LED array through the official API. A rejected request is not continuously resubmitted by the animation loop; Apply or an OS AOD callback can retry. This change still requires verification on the reported Phone (3) running Android 17.
+Build 3 completes SDK rendering before releasing the source bitmap and submits the resulting LED array through the official API. A rejected request is not continuously resubmitted by the animation loop; Apply or an OS AOD callback can retry. On 2026-10-18, the affected Phone (3) user confirmed that the logo appears after Apply with build 3. Lock/unlock persistence still requires a separate test.
 
 ## Using the editor
 
