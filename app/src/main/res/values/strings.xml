@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Custom Glyph</string>
+    <string name="toy_name">Custom Glyph</string>
+    <string name="toy_summary">Display a saved image or animation from Custom Glyph. Supports Always-On Glyph.</string>
+</resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="com.nothing.ketchum.permission.ENABLE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+    <queries><package android:name="com.nothing.thirdparty" /><package android:name="dev.glyphstudio" /></queries>
+    <application android:name=".GlyphApplication" android:allowBackup="false" android:dataExtractionRules="@xml/data_extraction_rules"
+        android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher" android:label="@string/app_name"
+        android:supportsRtl="true" android:theme="@style/Theme.CustomGlyph">
+        <provider android:name="androidx.core.content.FileProvider" android:authorities="${applicationId}.files" android:exported="false" android:grantUriPermissions="true">
+            <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/share_paths" />
+        </provider>
+        <meta-data android:name="NothingKey" android:value="${nothingKey}" />
+        <activity android:name=".MainActivity" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.MAIN" /><category android:name="android.intent.category.LAUNCHER" /></intent-filter>
+        </activity>
+        <service android:name=".glyph.DisplayService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="User-enabled rear Glyph Matrix image display with accelerometer-based face-down detection while the phone is in use. Persistent notification provides an immediate Stop action." />
+        </service>
+        <service android:name=".glyph.LogoToyService" android:exported="true" tools:ignore="ExportedService">
+            <intent-filter><action android:name="com.nothing.glyph.TOY" /></intent-filter>
+            <meta-data android:name="com.nothing.glyph.toy.name" android:resource="@string/toy_name" />
+            <meta-data android:name="com.nothing.glyph.toy.image" android:resource="@drawable/toy_preview" />
+            <meta-data android:name="com.nothing.glyph.toy.summary" android:resource="@string/toy_summary" />
+            <meta-data android:name="com.nothing.glyph.toy.introduction" android:value="dev.customglyph.MainActivity" />
+            <meta-data android:name="com.nothing.glyph.toy.aod_support" android:value="1" />
+        </service>
+        <receiver android:name=".glyph.BootReceiver" android:exported="true">
+            <intent-filter><action android:name="android.intent.action.BOOT_COMPLETED" /><action android:name="android.intent.action.MY_PACKAGE_REPLACED" /></intent-filter>
+        </receiver>
+    </application>
+</manifest>

@@ -1,0 +1,1 @@
+be00ee9cd7115f6b11984c6e31fe98e298fb726940d1555063610685ef3bbf29  app/libs/glyph-matrix-sdk-2.0.aar
