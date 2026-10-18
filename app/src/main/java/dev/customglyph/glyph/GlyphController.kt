@@ -2,10 +2,11 @@ package dev.customglyph.glyph
 
 import android.app.KeyguardManager
 import android.content.*
-import android.graphics.Bitmap
 import android.os.*
+import android.util.Log
 import androidx.core.content.ContextCompat
 import com.nothing.ketchum.*
+import dev.customglyph.BuildConfig
 import dev.customglyph.data.DesignRepository
 import dev.customglyph.model.*
 import kotlinx.coroutines.*
@@ -61,7 +62,9 @@ class GlyphController(private val context: Context, private val repository: Desi
     private var sentRoute: String? = null
     private var sentPixels: IntArray? = null
     private var cachedPixels: IntArray? = null
-    private var cachedFrame: GlyphMatrixFrame? = null
+    private var cachedFrame: IntArray? = null
+    private var failedRoute: String? = null
+    private var lastFailure: String? = null
     private var sequenceFile: String? = null
     private var sequence: FrameSequence? = null
     private var sequenceJob: Job? = null
@@ -176,7 +179,7 @@ class GlyphController(private val context: Context, private val repository: Desi
                                         true,
                                     )
                             } catch (error: Exception) {
-                                fail(error)
+                                fail("Register with Glyph service", error)
                             }
                         }
                     }
@@ -195,7 +198,7 @@ class GlyphController(private val context: Context, private val repository: Desi
             )
             handler.postDelayed(timeout, 8000)
         } catch (error: Exception) {
-            fail(error)
+            fail("Connect to Glyph service", error)
         }
     }
 
@@ -269,6 +272,7 @@ class GlyphController(private val context: Context, private val repository: Desi
         connected = false
         cachedFrame = null
         cachedPixels = null
+        failedRoute = null
         sequenceJob?.cancel()
         sequence = null
         sequenceFile = null
@@ -330,18 +334,25 @@ class GlyphController(private val context: Context, private val repository: Desi
             return
         }
         val route = if (selectedRoute == DisplayPolicy.Route.TOY) TOY else APP
+        // A failed GIF must not resubmit the same rejected request 12 times per second.
+        // Apply / Retry, a fresh connection and OS AOD callbacks explicitly retry with force=true.
+        if (!force && failedRoute == route) return
         if (!force && sentRoute == route && sentPixels?.contentEquals(pixels!!) == true) return
+        var operation = "Switch to Glyph Toy"
         try {
             if (route == TOY && sentRoute == APP) manager?.closeAppMatrix()
             if (cachedPixels?.contentEquals(pixels!!) != true) {
-                cachedFrame = buildFrame(pixels!!)
+                operation = "Render Glyph image"
+                cachedFrame = GlyphFrameEncoder.encode(context, requireNotNull(device), pixels!!)
                 cachedPixels = pixels.copyOf()
             }
             // Preserve ownership on failure so lock / Stop can still clear a partially accepted
             // request.
             sentRoute = route
+            operation = if (route == TOY) "Send Glyph Toy frame" else "Send app Glyph frame"
             if (route == TOY) manager!!.setMatrixFrame(cachedFrame!!)
             else manager!!.setAppMatrixFrame(cachedFrame!!)
+            failedRoute = null
             sentPixels = pixels!!.copyOf()
             report(
                 if (route == TOY) "Submitted to Glyph Toy" else "Submitted to Glyph",
@@ -350,7 +361,8 @@ class GlyphController(private val context: Context, private val repository: Desi
             )
         } catch (error: Exception) {
             sentPixels = null
-            fail(error)
+            failedRoute = route
+            fail(operation, error)
         }
     }
 
@@ -392,37 +404,6 @@ class GlyphController(private val context: Context, private val repository: Desi
     private fun effectiveFaceDown(): Boolean =
         DisplayPolicy.faceDown(sensor.fresh, sensor.faceDown, toyActive && aodEvent)
 
-    private fun buildFrame(pixels: IntArray): GlyphMatrixFrame {
-        val size = requireNotNull(device).size
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        return try {
-            bitmap.setPixels(
-                IntArray(pixels.size) { i ->
-                    val v = pixels[i]
-                    0xff000000.toInt() or (v shl 16) or (v shl 8) or v
-                },
-                0,
-                size,
-                0,
-                0,
-                size,
-                size,
-            )
-            val image =
-                GlyphMatrixObject.Builder()
-                    .setImageSource(bitmap)
-                    .setPosition(0, 0)
-                    .setScale(100)
-                    .setOrientation(0)
-                    .setBrightness(255)
-                    .setReverse(false)
-                    .build()
-            GlyphMatrixFrame.Builder().addTop(image).build(context)
-        } finally {
-            bitmap.recycle()
-        }
-    }
-
     private fun clearDisplay(): Boolean =
         try {
             when (sentRoute) {
@@ -433,9 +414,22 @@ class GlyphController(private val context: Context, private val repository: Desi
             sentPixels = null
             true
         } catch (error: Exception) {
-            fail(error)
+            fail("Clear Glyph display", error)
             false
         }
+
+    fun diagnostics(): String = buildString {
+        appendLine("Custom Glyph ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})")
+        appendLine("Device: ${Build.MANUFACTURER} ${Build.MODEL}")
+        appendLine("Android: ${Build.VERSION.RELEASE} / API ${Build.VERSION.SDK_INT}")
+        appendLine("OS build: ${Build.DISPLAY}")
+        appendLine("Profile: ${device?.title ?: "unsupported"}")
+        appendLine("SDK matrix size: ${runCatching { Common.getDeviceMatrixLength() }.getOrNull()}")
+        appendLine("Registered: $connected; Toy bound: $toyActive; AOD event: $aodEvent")
+        appendLine("Route: ${sentRoute ?: "none"}; owners: ${owners.sorted().joinToString()}")
+        appendLine("Status: ${status.value.title}: ${status.value.detail}")
+        lastFailure?.let { appendLine("Last failure:\n$it") }
+    }
 
     fun report(
         title: String,
@@ -446,12 +440,15 @@ class GlyphController(private val context: Context, private val repository: Desi
         mutableStatus.value = Status(title, detail, error, connected)
     }
 
-    private fun fail(error: Exception) =
+    private fun fail(operation: String, error: Exception) {
+        lastFailure = "$operation\n${Log.getStackTraceString(error)}"
+        Log.e("CustomGlyph", operation, error)
         report(
-            "Glyph request failed",
-            error.message ?: "Check Glyph access in system settings.",
+            if (error is SecurityException) "Glyph access denied" else "Glyph request failed",
+            "$operation: ${error.javaClass.simpleName}: ${error.message ?: "No detail supplied by the SDK."}",
             true,
         )
+    }
 
     companion object {
         const val APP = "app"

@@ -26,10 +26,16 @@ The policy is tested for all lock/bind combinations. The reported clock/image al
 
 ## Processing
 
-Transforms are applied before calling the SDK; the SDK receives an already positioned native-size bitmap at 100% scale and zero rotation. This avoids coupling pixel placement to vendor transform behavior. The public SDK frame builder converts grayscale to the device's native intensity format. No native raw brightness range is guessed.
+Transforms are applied before calling the SDK; the SDK receives an already positioned native-size bitmap at 100% scale and zero rotation. This avoids coupling pixel placement to vendor transform behavior. The public SDK frame builder converts grayscale to the device's native intensity format. `frame.render()` completes while the source bitmap is alive; only then is the bitmap recycled. The controller caches the resulting integer array and uses the official `int[]` submission overloads, matching the example project. No native raw brightness range is guessed.
 
 GIF playback uses the same maps as the preview. Playback is limited to 12 fps and never takes a wake lock. AOD playback may pause when the system suspends the process; static images are the most predictable AOD content.
 
 ## Distribution
 
 The EULA grants SDK integration rights, describes the SDK as closed source, restricts redistribution in §2.1(c), and requires written permission for commercial use in §2.2. Original app code is MIT licensed. The vendor AAR is excluded from source distribution. The signed local APK contains the SDK; public binary distribution requires resolving the vendor's terms.
+
+## Apply failure investigation — build 3
+
+The user reported immediate “Glyph request failed” on Phone (3), Android 17, and said an earlier APK worked. The build 1→2 diff changed setup navigation and the version code, not the SDK or frame submission. Review found that `buildFrame()` recycled its source bitmap before handing the structured frame to the SDK for rendering. Build 3 removes that unsafe lifetime by rendering synchronously to an LED array before cleanup. This is a concrete ordering fix, not confirmation of the device-side root cause.
+
+An unmodified SDK probe on the Android 15 emulator reports a matrix length of 0 and fails in `GlyphMatrixObject.Builder` before rendering; therefore it cannot reproduce the Phone (3) exception. No device identifier was spoofed. Separate Android tests verify source lifetime, cleanup on exceptions, and visible/copyable error reporting. The physical SDK test now exercises the production encoder and remains skipped on unsupported devices. Operation-specific diagnostics are available for the next phone test.

@@ -2,6 +2,8 @@
 
 package dev.customglyph.ui
 
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -241,6 +243,21 @@ internal fun SettingsSheet(vm: EditorViewModel, onDismiss: () -> Unit, message: 
                         color = Color(0xff55545b),
                         modifier = Modifier.padding(top = 5.dp),
                     )
+                    if (status.error)
+                        TextButton(
+                            onClick = {
+                                context
+                                    .getSystemService(ClipboardManager::class.java)
+                                    .setPrimaryClip(
+                                        ClipData.newPlainText(
+                                            "Custom Glyph diagnostics",
+                                            vm.glyph.diagnostics(),
+                                        )
+                                    )
+                            }
+                        ) {
+                            Text("Copy error details", fontSize = 11.sp)
+                        }
                     Button(
                         onClick = { setup = true },
                         modifier =

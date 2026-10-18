@@ -3,6 +3,8 @@
 package dev.customglyph.ui
 
 import android.Manifest
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -10,6 +12,7 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -24,6 +27,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.semantics.*
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
@@ -31,6 +35,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.customglyph.glyph.GlyphController
 import kotlin.math.*
 import kotlinx.coroutines.launch
 
@@ -50,6 +55,7 @@ fun CustomGlyphApp(vm: EditorViewModel) = GlyphTheme {
     var tab by rememberSaveable { mutableIntStateOf(0) }
     var settings by rememberSaveable { mutableStateOf(false) }
     var preview by rememberSaveable { mutableStateOf(false) }
+    var glyphFailure by remember { mutableStateOf<GlyphController.Status?>(null) }
     var saving by rememberSaveable { mutableStateOf(false) }
     var exportMenu by remember { mutableStateOf(false) }
     var saveName by rememberSaveable { mutableStateOf("") }
@@ -121,6 +127,19 @@ fun CustomGlyphApp(vm: EditorViewModel) = GlyphTheme {
         }
     }
     LaunchedEffect(vm) { for (message in vm.messages) snackbar.showSnackbar(message) }
+    LaunchedEffect(status) {
+        if (
+            status.error &&
+                status.title in
+                    setOf(
+                        "Glyph request failed",
+                        "Glyph access denied",
+                        "Registration refused",
+                        "Connection unavailable",
+                    )
+        )
+            glyphFailure = status
+    }
     Scaffold(
         containerColor = Ink,
         snackbarHost = { SnackbarHost(snackbar) },
@@ -159,38 +178,68 @@ fun CustomGlyphApp(vm: EditorViewModel) = GlyphTheme {
         },
         bottomBar = {
             val actions: @Composable (Modifier) -> Unit = { modifier ->
-                Row(modifier, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                    Button(
-                        onClick = ::apply,
-                        enabled = !editor.busy,
-                        shape = CircleShape,
-                        colors =
-                            ButtonDefaults.buttonColors(
-                                containerColor = ActionRed,
-                                contentColor = Color.White,
-                            ),
-                        contentPadding = PaddingValues(horizontal = 24.dp),
-                        modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (status.error)
+                        Surface(
+                            onClick = { glyphFailure = status },
+                            color = Panel,
+                            shape = RoundedCornerShape(18.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(Modifier.weight(1f).padding(end = 12.dp)) {
+                                    Text(status.title, color = Red, fontSize = 11.sp)
+                                    Text(
+                                        status.detail,
+                                        color = Muted,
+                                        fontSize = 9.sp,
+                                        lineHeight = 13.sp,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                                Text("Details", fontSize = 10.sp)
+                            }
+                        }
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Icon(Icons.Outlined.Bolt, null, Modifier.size(22.dp))
-                        Text(
-                            "Apply to Glyph",
-                            Modifier.weight(1f).padding(horizontal = 12.dp),
-                            fontSize = 13.sp,
+                        Button(
+                            onClick = ::apply,
+                            enabled = !editor.busy,
+                            shape = CircleShape,
+                            colors =
+                                ButtonDefaults.buttonColors(
+                                    containerColor = ActionRed,
+                                    contentColor = Color.White,
+                                ),
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
+                        ) {
+                            Icon(Icons.Outlined.Bolt, null, Modifier.size(22.dp))
+                            Text(
+                                "Apply to Glyph",
+                                Modifier.weight(1f).padding(horizontal = 12.dp),
+                                fontSize = 13.sp,
+                            )
+                            Icon(Icons.Outlined.ArrowOutward, null, Modifier.size(19.dp))
+                        }
+                        CircleAction(
+                            "Save",
+                            Icons.Outlined.BookmarkBorder,
+                            {
+                                saveName = editor.draft.name.substringBeforeLast('.').take(40)
+                                saving = true
+                            },
+                            Modifier.width(64.dp),
+                            light = true,
+                            enabled = !editor.busy,
                         )
-                        Icon(Icons.Outlined.ArrowOutward, null, Modifier.size(19.dp))
                     }
-                    CircleAction(
-                        "Save",
-                        Icons.Outlined.BookmarkBorder,
-                        {
-                            saveName = editor.draft.name.substringBeforeLast('.').take(40)
-                            saving = true
-                        },
-                        Modifier.width(64.dp),
-                        light = true,
-                        enabled = !editor.busy,
-                    )
                 }
             }
             val navigation: @Composable (Modifier) -> Unit = { modifier ->
@@ -318,6 +367,43 @@ fun CustomGlyphApp(vm: EditorViewModel) = GlyphTheme {
             onDismiss = { settings = false },
             message = { scope.launch { snackbar.showSnackbar(it) } },
         )
+    glyphFailure?.let { failure ->
+        AlertDialog(
+            onDismissRequest = { glyphFailure = null },
+            title = { Text(failure.title) },
+            text = {
+                Column(Modifier.heightIn(max = 320.dp).verticalScroll(rememberScrollState())) {
+                    Text(failure.detail, fontSize = 12.sp, lineHeight = 20.sp)
+                    TextButton(
+                        onClick = {
+                            context
+                                .getSystemService(ClipboardManager::class.java)
+                                .setPrimaryClip(
+                                    ClipData.newPlainText(
+                                        "Custom Glyph diagnostics",
+                                        vm.glyph.diagnostics(),
+                                    )
+                                )
+                        }
+                    ) {
+                        Text("Copy error details")
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        glyphFailure = null
+                        apply()
+                    },
+                    enabled = !editor.busy,
+                ) {
+                    Text("Try again")
+                }
+            },
+            dismissButton = { TextButton(onClick = { glyphFailure = null }) { Text("Close") } },
+        )
+    }
     if (saving)
         AlertDialog(
             onDismissRequest = { saving = false },

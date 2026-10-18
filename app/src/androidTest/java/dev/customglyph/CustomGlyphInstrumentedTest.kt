@@ -1,6 +1,6 @@
 package dev.customglyph
 
-import android.graphics.Bitmap
+import android.content.ClipboardManager
 import android.graphics.BitmapFactory
 import android.net.Uri
 import androidx.compose.ui.geometry.Offset
@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.nothing.ketchum.*
 import dev.customglyph.data.DesignRepository
+import dev.customglyph.glyph.GlyphFrameEncoder
 import dev.customglyph.imaging.*
 import dev.customglyph.model.*
 import dev.customglyph.ui.EditorViewModel
@@ -90,6 +91,39 @@ class CustomGlyphInstrumentedTest {
         compose.onNodeWithText("Review display setup").assertIsDisplayed().performClick()
         compose.onNodeWithText("Display setup").assertIsDisplayed()
         compose.onNodeWithText("Done").performClick()
+    }
+
+    @Test
+    fun glyphFailureIsVisibleAndCanBeCopiedWithoutLosingThePreview() {
+        enterEditor()
+        lateinit var vm: EditorViewModel
+        val detail = "Render Glyph image: IllegalStateException: Source bitmap is recycled"
+        compose.runOnIdle {
+            vm = ViewModelProvider(compose.activity)[EditorViewModel::class.java]
+            vm.glyph.report("Glyph request failed", detail, true)
+        }
+        try {
+            compose.onAllNodesWithText(detail).onLast().assertIsDisplayed()
+            compose.onNodeWithText("Copy error details").performClick()
+            compose.runOnIdle {
+                val copied =
+                    context
+                        .getSystemService(ClipboardManager::class.java)
+                        .primaryClip!!
+                        .getItemAt(0)
+                        .text
+                        .toString()
+                assertTrue(copied.contains(detail))
+                assertTrue(copied.contains("OS build:"))
+            }
+            compose.onNodeWithText("Close").performClick()
+            compose.onNodeWithText("Details").assertIsDisplayed()
+            compose
+                .onNode(hasContentDescription("Glyph Matrix preview", substring = true))
+                .assertIsDisplayed()
+        } finally {
+            compose.runOnIdle { vm.glyph.report("Editor mode", "Test finished.") }
+        }
     }
 
     @Test
@@ -219,24 +253,14 @@ class CustomGlyphInstrumentedTest {
         )
         val size = Common.getDeviceMatrixLength()
         val center = size / 2
-        val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
-        bitmap.eraseColor(0xff000000.toInt())
-        bitmap.setPixel(center, center - 3, -1)
-        bitmap.setPixel(center + 3, center, 0xff808080.toInt())
-        val image =
-            GlyphMatrixObject.Builder()
-                .setImageSource(bitmap)
-                .setScale(100)
-                .setBrightness(255)
-                .setPosition(0, 0)
-                .setOrientation(0)
-                .setReverse(false)
-                .build()
-        val result = GlyphMatrixFrame.Builder().addTop(image).build(context).render()
+        val pixels = IntArray(size * size)
+        pixels[(center - 3) * size + center] = 255
+        pixels[center * size + center + 3] = 128
+        val profile = if (Common.is25111p()) DeviceProfile.PHONE_4A_PRO else DeviceProfile.PHONE_3
+        val result = GlyphFrameEncoder.encode(context, profile, pixels)
         assertEquals(size * size, result.size)
         assertTrue(result[(center - 3) * size + center] > result[center * size + center + 3])
         assertTrue(result[center * size + center + 3] > 0)
         assertEquals(0, result[0])
-        bitmap.recycle()
     }
 }

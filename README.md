@@ -53,6 +53,12 @@ On Phone (3), the app releases its direct-display route when the phone locks. Th
 
 Nothing OS can still interrupt output for other toys, notifications, battery policy or firmware behavior. Continuous illumination is **not guaranteed**. The SDK provides no physical-display acknowledgment. The reported clock/image switching across lock/unlock has a routing fix in this version but still needs a repeat test on the affected Phone (3).
 
+### If Apply reports a failure
+
+The editor shows the failed operation and SDK error. Tap **Copy error details** in the error dialog (also available in Settings) when reporting it. The report includes the app build, Android/OS build, device profile, SDK matrix size, connection/route state and exception. It is copied locally; the app does not upload it.
+
+Build 3 completes SDK rendering before releasing the source bitmap and submits the resulting LED array through the official API. A rejected request is not continuously resubmitted by the animation loop; Apply or an OS AOD callback can retry. This change still requires verification on the reported Phone (3) running Android 17.
+
 ## Using the editor
 
 Choose the detected phone profile, or select a different profile to prepare an export. Applying a mismatched profile on a supported phone is rejected. Drag to move; pinch and twist to scale and rotate. **Light** contains brightness and contrast. **Move** contains scale and rotation. **Place** contains quarter-LED X/Y controls. **Image** contains Tonal/Silhouette mode, inversion and dithering. **Center** resets translation; **Reset** restores adjustments.

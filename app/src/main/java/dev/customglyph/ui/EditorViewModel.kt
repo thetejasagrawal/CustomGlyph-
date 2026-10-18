@@ -278,10 +278,11 @@ class EditorViewModel(application: Application) : AndroidViewModel(application) 
         withContext(Dispatchers.IO) { repository.apply(draft, sequence) }
         refreshLibrary()
         glyph.cancelPreview()
+        if (glyph.supported) glyph.report("Applying design", "Waiting for the Glyph request.")
         when {
             glyph.directDisplay && repository.showUnlocked -> {
                 DisplayService.start(app, true)
-                messages.send("Design saved. Requesting Glyph display…")
+                messages.send("Requesting Glyph display…")
             }
             glyph.supported -> {
                 glyph.refresh(true)
