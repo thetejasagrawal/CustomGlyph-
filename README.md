@@ -40,10 +40,10 @@ A signed local APK accompanies this project handoff. A public APK release is pen
 1. Transfer `CustomGlyph-1.0.apk` to your phone and open it. Allow installation from that file manager/browser when Android asks.
 2. If the earlier **Glyph Studio** prototype is installed, stop or uninstall it first. Its application ID differs and both apps can otherwise request the display.
 3. Open Custom Glyph and follow **Set up display**. The checklist requests Glyph access when exposed as a runtime permission, notifications, and optional background battery access on Phone (3).
-4. In Nothing OS, add/select **Custom Glyph** under Glyph Toys. Then select **Custom Glyph as the Always-On toy**, replacing the clock, under **Settings → Glyph Interface → Flip to Glyph → Always-on Glyph Toy**. Some firmware uses the name **Always-on Glyph** instead.
+4. Tap **Choose Always-On toy** at the top of display setup, then select **Custom Glyph** on the system screen. This shortcut is also at the top of the app’s Settings. If Nothing OS blocks the direct picker, follow the fallback shown in the app: **Glyph Interface → Flip to Glyph → Always-on Glyph Toy → Custom Glyph**. Some firmware uses the name **Always-on Glyph** instead.
 5. Import an image and tap **Apply to Glyph**. Place the phone face down to check Always-On behavior.
 
-The app uses the supported Glyph Toys manager shortcut. If that activity is unavailable, it opens system settings and shows the manual path. Nothing OS does not expose the chosen Always-On toy to third-party apps, so the checklist labels that item as user-confirmed. Other permission states are rechecked when you return.
+The app first tries the firmware-specific Always-On picker. If that screen is missing or restricted, it tries Nothing’s documented Glyph Toys manager, then system settings, and explains the remaining steps. Opening a screen does not automatically choose a toy. Nothing OS does not expose the chosen Always-On toy to third-party apps, so the checklist labels that item as user-confirmed. Other permission states are rechecked when you return.
 
 ### If the clock keeps returning
 

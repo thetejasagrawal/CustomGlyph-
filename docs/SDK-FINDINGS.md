@@ -13,7 +13,8 @@ Checked against Nothing's [Glyph Matrix Developer Kit](https://github.com/Nothin
 - Toy requests use `setMatrixFrame` only while the OS binds the Toy service. AOD support metadata is `com.nothing.glyph.toy.aod_support=1`.
 - The selected AOD toy receives `GlyphToy.EVENT_AOD` once per minute. The OS controls the bind, unbind and display duration.
 - The SDK does not acknowledge physical illumination. The app reports registration failures and request errors, and distinguishes submission from confirmation.
-- A documented manager shortcut is `com.nothing.thirdparty/com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity`. There is no documented API to set or read the user's Always-On toy selection. Setup uses a clearly labeled user confirmation for that item.
+- The setup shortcut first attempts `com.nothing.thirdparty/com.nothing.thirdparty.matrix.toys.manager.AodToySelectActivity`, an observed firmware activity also referenced by [Matrix Lab](https://github.com/alex-1121/glyph-matrix-lab#quick-start). This is not a documented SDK guarantee: missing activities and security restrictions fall back safely, without private Settings fragments, root, or accessibility automation. Its availability on the user’s Phone (3) remains unverified.
+- A documented fallback manager shortcut is `com.nothing.thirdparty/com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity`. There is no documented API to set or read the user's Always-On toy selection. Setup uses a clearly labeled user confirmation for that item.
 - The example uses `NothingKey=test`. No production entitlement was obtained as part of this build. An optional Gradle property replaces it.
 - No hidden APIs, wake locks, root access, firmware timeout bypass, or undocumented `setGlyphMatrixTimeout` calls are used.
 

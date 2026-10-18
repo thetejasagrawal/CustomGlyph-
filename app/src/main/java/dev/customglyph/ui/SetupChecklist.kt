@@ -2,18 +2,21 @@ package dev.customglyph.ui
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.PowerManager
 import android.provider.Settings
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ArrowOutward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,6 +26,7 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import dev.customglyph.glyph.GlyphSettingsNavigator
 
 /** Checks observable permissions again on return. Toy selection is explicitly user-confirmed. */
 // Background orientation tracking is a core function; this optional request is only user-initiated.
@@ -91,6 +95,29 @@ internal fun SetupChecklist(vm: EditorViewModel) {
         return
     }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        AlwaysOnToySetup()
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = confirmedToy,
+                onCheckedChange = {
+                    confirmedToy = it
+                    vm.repository.prefs.edit().putBoolean("toy_selected_by_user", it).apply()
+                },
+            )
+            Column(Modifier.weight(1f)) {
+                Text(
+                    "I selected Custom Glyph as the Always-On toy",
+                    fontSize = 11.sp,
+                    lineHeight = 18.sp,
+                )
+                Text(
+                    "Confirmed by you; Android does not expose this setting to the app.",
+                    fontSize = 9.sp,
+                    lineHeight = 15.sp,
+                    color = Muted,
+                )
+            }
+        }
         if (oldApp)
             SetupCard(
                 "Older app installed",
@@ -156,43 +183,6 @@ internal fun SetupChecklist(vm: EditorViewModel) {
                     )
             }
         }
-        SetupCard(
-            "Always-On toy",
-            "Choose Custom Glyph, replacing the clock: Settings → Glyph Interface → Flip to Glyph → Always-on Glyph Toy. Some firmware calls this Always-on Glyph.",
-            "Open Glyph settings",
-        ) {
-            open(
-                Intent()
-                    .setComponent(
-                        ComponentName(
-                            "com.nothing.thirdparty",
-                            "com.nothing.thirdparty.matrix.toys.manager.ToysManagerActivity",
-                        )
-                    )
-            )
-        }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = confirmedToy,
-                onCheckedChange = {
-                    confirmedToy = it
-                    vm.repository.prefs.edit().putBoolean("toy_selected_by_user", it).apply()
-                },
-            )
-            Column(Modifier.weight(1f)) {
-                Text(
-                    "I selected Custom Glyph as the Always-On toy",
-                    fontSize = 11.sp,
-                    lineHeight = 18.sp,
-                )
-                Text(
-                    "Confirmed by you; Android does not expose this setting to the app.",
-                    fontSize = 9.sp,
-                    lineHeight = 15.sp,
-                    color = Muted,
-                )
-            }
-        }
         Text(
             "Place the phone face down to check. If the clock returns, reselect Custom Glyph as the Always-On toy. Switching toys with the Glyph Button does not change the Always-On selection.",
             fontSize = 11.sp,
@@ -200,6 +190,66 @@ internal fun SetupChecklist(vm: EditorViewModel) {
             color = Muted,
         )
         error?.let { Text(it, color = Red, fontSize = 11.sp) }
+    }
+}
+
+@Composable
+internal fun AlwaysOnToySetup() {
+    val context = LocalContext.current
+    var destination by rememberSaveable {
+        mutableStateOf<GlyphSettingsNavigator.Destination?>(null)
+    }
+    Surface(color = Panel, shape = RoundedCornerShape(28.dp)) {
+        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+            Text("Always-On toy", fontSize = 14.sp)
+            Text(
+                "Choose Custom Glyph for face-down display, replacing the clock.",
+                color = Muted,
+                fontSize = 11.sp,
+                lineHeight = 18.sp,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Button(
+                onClick = {
+                    destination = GlyphSettingsNavigator.openAlwaysOn(context)
+                    if (
+                        destination == GlyphSettingsNavigator.Destination.TOY_MANAGER ||
+                            destination == GlyphSettingsNavigator.Destination.SYSTEM_SETTINGS
+                    )
+                        Toast.makeText(
+                                context,
+                                "Glyph Interface → Flip to Glyph → Always-on Glyph Toy → Custom Glyph",
+                                Toast.LENGTH_LONG,
+                            )
+                            .show()
+                },
+                modifier = Modifier.fillMaxWidth().padding(top = 12.dp).heightIn(min = 48.dp),
+            ) {
+                Text("Choose Always-On toy", Modifier.weight(1f), fontSize = 11.sp)
+                Icon(Icons.Outlined.ArrowOutward, null, Modifier.size(18.dp))
+            }
+            val guidance =
+                when (destination) {
+                    GlyphSettingsNavigator.Destination.ALWAYS_ON ->
+                        "Select Custom Glyph on the system screen, then return here."
+                    GlyphSettingsNavigator.Destination.TOY_MANAGER ->
+                        "This firmware opened Glyph Toys. Open its settings and choose Always-on Glyph Toy → Custom Glyph. If that option is absent, use Settings → Glyph Interface → Flip to Glyph."
+                    GlyphSettingsNavigator.Destination.SYSTEM_SETTINGS ->
+                        "This firmware requires the Settings route: Glyph Interface → Flip to Glyph → Always-on Glyph Toy → Custom Glyph."
+                    GlyphSettingsNavigator.Destination.UNAVAILABLE ->
+                        "The settings shortcut is unavailable. Open Settings → Glyph Interface → Flip to Glyph → Always-on Glyph Toy → Custom Glyph."
+                    null -> null
+                }
+            guidance?.let {
+                Text(
+                    it,
+                    color = Muted,
+                    fontSize = 10.sp,
+                    lineHeight = 17.sp,
+                    modifier = Modifier.padding(top = 12.dp),
+                )
+            }
+        }
     }
 }
 

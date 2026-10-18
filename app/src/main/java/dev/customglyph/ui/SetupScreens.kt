@@ -221,6 +221,7 @@ internal fun SettingsSheet(vm: EditorViewModel, onDismiss: () -> Unit, message: 
                 DotText("SETTINGS", Modifier.weight(1f), size = 34.sp)
                 IconButton(onClick = onDismiss) { Icon(Icons.Outlined.Close, "Close settings") }
             }
+            if (vm.glyph.supported) AlwaysOnToySetup()
             LightWidget(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(20.dp)) {
                     Text(
