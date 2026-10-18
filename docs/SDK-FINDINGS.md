@@ -32,7 +32,7 @@ GIF playback uses the same maps as the preview. Playback is limited to 12 fps an
 
 ## Distribution
 
-The EULA grants SDK integration rights, describes the SDK as closed source, restricts redistribution in §2.1(c), and requires written permission for commercial use in §2.2. Original app code is MIT licensed. The vendor AAR is excluded from source distribution. The signed local APK contains the SDK; public binary distribution requires resolving the vendor's terms.
+The EULA grants SDK integration rights in §1, describes the SDK as closed source, restricts redistribution in §2.1(c), and requires written permission for commercial use in §2.2. The official developer guide also describes application distribution under [Best Practice: Guiding Users to Glyph Toys Manager](https://github.com/Nothing-Developer-Programme/GlyphMatrix-Developer-Kit#best-practice-guiding-users-to-glyph-toys-manager). Original app code is MIT licensed. The free community APK integrates the SDK and includes its EULA; neither the vendor AAR nor SDK source is offered as a separate download or included in the source archive. This is not a claim of separate Nothing approval, and the app's MIT license does not override the SDK terms.
 
 ## Apply failure investigation — build 3
 

@@ -18,7 +18,7 @@ Full notices are also included in the APK under `assets/licenses/`.
 
 The SDK is a closed-source dependency. Its AAR is **not included in this source repository or the source archive**. The setup script downloads an unmodified copy from Nothing's official repository at a pinned commit and verifies its SHA-256 digest.
 
-Nothing's EULA permits integration through its public APIs, restricts redistribution, and requires prior written permission for commercial use. The app's MIT license grants no additional rights to that SDK. Review the EULA and resolve any necessary distribution permissions with Nothing before publishing a binary that contains it. Contact: GDKsupport@nothing.tech.
+Nothing's EULA permits integration through its public APIs, restricts redistribution, and requires prior written permission for commercial use. The free community APK integrates the SDK and includes its EULA; the SDK is not offered as a separate download. The app's MIT license grants no additional rights to that SDK, and no separate Nothing approval is claimed. Anyone reusing or distributing the project must review the SDK's terms separately. Licensing inquiries: GDKsupport@nothing.tech.
 
 ## Attribution
 

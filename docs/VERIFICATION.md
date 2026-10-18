@@ -18,7 +18,7 @@ Build 2 installed over signed build 1 without clearing app data and retained the
 
 UI screenshots are real emulator captures. They show **Editor mode**, since the emulator has no Glyph Matrix. Portrait, landscape and 130% / 200% system font scales are checked. The preview and controls use separate layout/scroll regions. At large text sizes, editing actions move into a menu and the controls stack vertically. See [visual QA](../design-qa.md).
 
-## Physical release gate
+## Physical verification
 
 On 2026-10-18, the Phone (3) user confirmed “Logo appears” after installing build 3 and tapping Apply. The user reports Android 17; the exact Nothing OS build, SDK route and lock/orientation state were not captured. This confirms visible output for that test. The remaining checks below are pending and must be performed separately on each supported model.
 
@@ -48,9 +48,11 @@ On 2026-10-18, the Phone (3) user confirmed “Logo appears” after installing 
 
 The code now keeps a single SDK owner, releases direct app output on lock, gives bound Toy output priority, ignores stale callbacks, retries unexpected disconnects with a bounded backoff, and lets fresh face-up sensor readings override AOD fallback. These are software fixes; their physical outcome remains to be confirmed.
 
-## Distribution gate
+## Public beta packaging
 
-Original source code is MIT licensed. The SDK AAR is excluded from the public source. Nothing's SDK EULA separately restricts redistribution; the signed APK includes that SDK. Public binary publication requires resolving those terms. No approved production Nothing API key was obtained for this build; the default is the official example's `test` value.
+The first public release is tagged `v1.0.0-beta.1` and uses the exact signed build 3 APK identified above. This is a prerelease for community testing; the remaining physical checks are not marked complete. The app still reports version `1.0` / code `3`. Release notes and packaging documentation do not change the executable.
+
+Original source code is MIT licensed. The SDK AAR is excluded from the public source, while the APK integrates it with its EULA and other dependency notices included. Nothing's terms govern the SDK separately, including restrictions on redistribution and commercial use; the app's MIT license grants no SDK rights. No separate vendor approval or approved production Nothing API key was obtained for this build; the default is the official example's `test` value.
 
 ## Always-On shortcut — build 2
 

@@ -1,0 +1,46 @@
+name: Bug report
+description: Report an editor, installation or Glyph display problem.
+title: "[Bug]: "
+body:
+  - type: input
+    id: app_version
+    attributes:
+      label: Custom Glyph version
+      placeholder: "1.0 / build 3 (Public Beta 1)"
+    validations:
+      required: true
+  - type: dropdown
+    id: phone
+    attributes:
+      label: Phone
+      options:
+        - Nothing Phone (3)
+        - Nothing Phone (4a) Pro
+        - Other / emulator
+    validations:
+      required: true
+  - type: input
+    id: os_version
+    attributes:
+      label: Android and Nothing OS build
+      description: Copy the version and build number from your phone's About screen.
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened?
+      description: Include what you expected and the steps to reproduce it.
+    validations:
+      required: true
+  - type: textarea
+    id: display_state
+    attributes:
+      label: Display state
+      description: For Glyph problems, say whether the phone was locked, face down or face up, whether Custom Glyph was selected as the Always-On toy, and whether you used a still image or GIF.
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Error details or installation warning
+      description: Paste Copy error details from the app, or the exact Android / Play Protect warning. Review before posting and remove anything private.
+      render: text

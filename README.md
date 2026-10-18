@@ -1,9 +1,13 @@
 <p align="center"><img src="docs/icon.svg" width="88" alt="Custom Glyph icon"></p>
 <h1 align="center">Custom Glyph</h1>
 <p align="center">An image editor for the rear Glyph Matrix on Nothing Phone (3) and Phone (4a) Pro.</p>
-<p align="center"><a href="#install">Install</a> · <a href="#build">Build</a> · <a href="docs/VERIFICATION.md">Verification</a> · <a href="https://x.com/PossiblyTejas">@PossiblyTejas</a></p>
+<p align="center"><a href="https://github.com/thetejasagrawal/CustomGlyph-/releases/download/v1.0.0-beta.1/CustomGlyph-1.0-build3.apk"><strong>Download APK</strong></a> · <a href="https://github.com/thetejasagrawal/CustomGlyph-/releases/tag/v1.0.0-beta.1">Release notes</a> · <a href="#install">Install</a> · <a href="#build">Build</a> · <a href="https://x.com/PossiblyTejas">@PossiblyTejas</a></p>
 
-## Version 1.0
+## 1.0 Public Beta 1
+
+[**Download the signed APK**](https://github.com/thetejasagrawal/CustomGlyph-/releases/download/v1.0.0-beta.1/CustomGlyph-1.0-build3.apk) · [All releases](https://github.com/thetejasagrawal/CustomGlyph-/releases) · [Report a bug](https://github.com/thetejasagrawal/CustomGlyph-/issues/new?template=bug_report.yml)
+
+Android 13 or later. This is build 3, with logo output confirmed by a Phone (3) user. Always-On persistence is still being tested; Phone (4a) Pro support is experimental. The installed app reports version `1.0` (build `3`).
 
 Custom Glyph is a native Kotlin / Jetpack Compose app. Import artwork, position it on the physical LED grid, and use Nothing's official SDK to submit the result.
 
@@ -35,9 +39,9 @@ The masks and LED spacing come from Nothing's official SVG specifications. The s
 
 ## Install
 
-A signed local APK accompanies this project handoff. A public APK release is pending physical-device validation and review of Nothing’s SDK distribution terms. See [Build](#build) to compile your own copy.
+[Download `CustomGlyph-1.0-build3.apk`](https://github.com/thetejasagrawal/CustomGlyph-/releases/download/v1.0.0-beta.1/CustomGlyph-1.0-build3.apk). The [release page](https://github.com/thetejasagrawal/CustomGlyph-/releases/tag/v1.0.0-beta.1) includes checksums, signing-certificate details and a source archive. Existing build 3 users already have this exact APK; no reinstall is needed. Future updates must use the same signing certificate to preserve app data.
 
-1. Transfer `CustomGlyph-1.0.apk` to your phone and open it. Allow installation from that file manager/browser when Android asks.
+1. Open the downloaded APK on your phone. Allow installation from that file manager/browser when Android asks. If Play Protect offers a scan, let it complete; signing does not remove Google's security checks. If the APK is blocked as harmful, report the exact message instead of disabling protection.
 2. If the earlier **Glyph Studio** prototype is installed, stop or uninstall it first. Its application ID differs and both apps can otherwise request the display.
 3. Open Custom Glyph and follow **Set up display**. The checklist requests Glyph access when exposed as a runtime permission, notifications, and optional background battery access on Phone (3).
 4. Tap **Choose Always-On toy** at the top of display setup, then select **Custom Glyph** on the system screen. This shortcut is also at the top of the app’s Settings. If Nothing OS blocks the direct picker, follow the fallback shown in the app: **Glyph Interface → Flip to Glyph → Always-on Glyph Toy → Custom Glyph**. Some firmware uses the name **Always-on Glyph** instead.
@@ -148,6 +152,6 @@ Image processing and file I/O run outside the main thread. Preview playback stop
 
 The app has no internet permission, analytics or broad storage access. It uses the document picker, private files and temporary FileProvider grants for sharing. App backups are disabled. Uninstalling removes private images, Gallery entries and settings; exported files remain wherever you saved them.
 
-Original application code and artwork are [MIT licensed](LICENSE). Dependencies have their own [licenses and notices](THIRD_PARTY_NOTICES.md). **Nothing's SDK is proprietary and is not committed to this repository.** Its EULA restricts redistribution and commercial use; public binary distribution must be cleared under those terms. The setup script retrieves a checksum-verified, unmodified SDK from Nothing's official repository.
+Original application code and artwork are [MIT licensed](LICENSE). Dependencies have their own [licenses and notices](THIRD_PARTY_NOTICES.md). **Nothing's SDK is proprietary.** The free APK integrates it under its separate [EULA](licenses/NOTHING-SDK.md); the MIT license does not cover it. The SDK AAR is excluded from the repository and source archive. Nothing's terms restrict SDK redistribution and require written permission for commercial use. No separate Nothing approval or production API key is claimed. The setup script retrieves a checksum-verified, unmodified SDK from Nothing's official repository.
 
 Made by [Tejas Agrawal](https://x.com/PossiblyTejas). Independent project; not affiliated with Nothing.
